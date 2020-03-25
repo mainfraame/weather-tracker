@@ -1,0 +1,168 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Weather Tracker
+  description: An in-memory api for recording weather measurements and calculating statistics
+  contact:
+    email: dayne.mentier@gmail.com
+
+paths:
+  /measurements:
+    post:
+      tags:
+        - measurements
+      summary: Add a measurement
+      description: ""
+      operationId: addMeasurement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/measurement"
+        description: The measurement to add to the store
+        required: true
+      responses:
+        "201":
+          description: Ok
+          headers:
+            Location:
+              description: The URL of the newly-added measurement
+              schema:
+                type: string
+        "400":
+          description: Invalid input supplied
+  "/measurements/{timestamp}":
+    get:
+      tags:
+        - measurements
+      summary: Find a measurement by ISO-8601 date
+      description: Returns a single measurement
+      operationId: getMeasurement
+      parameters:
+        - $ref: "#/components/parameters/timestamp"
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/measurement"
+        "400":
+          description: Invalid timestamp supplied
+        "404":
+          description: No measurement found
+  /stats:
+    get:
+      tags:
+        - stats
+      summary: Calculate statistics for metrics within an ISO-8601 date range
+      description: Returns a collection of statistics for each metric within ISO-8601 date range
+      operationId: getMetricStats
+      parameters:
+        - $ref: "#/components/parameters/fromDateTime"
+        - $ref: "#/components/parameters/metric"
+        - $ref: "#/components/parameters/stat"
+        - $ref: "#/components/parameters/toDateTime"
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/statistic"
+        "400":
+          description: Invalid request parameters supplied
+
+components:
+  parameters:
+    fromDateTime:
+      name: fromDateTime
+      in: query
+      description: Start date-time range for measurements
+      required: true
+      allowEmptyValue: false
+      schema:
+        type: string
+        format: date-time
+    metric:
+      name: metric
+      in: query
+      description: Metrics to apply statistics to
+      required: true
+      allowEmptyValue: false
+      explode: true
+      schema:
+        type: array
+        items:
+          type: string
+        minItems: 1
+    stat:
+      name: stat
+      in: query
+      description: Statistics to calculate metrics with
+      required: true
+      allowEmptyValue: false
+      explode: true
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - average
+            - max
+            - min
+        minItems: 1
+    timestamp:
+      name: timestamp
+      in: path
+      description: Timestamp of measurement
+      required: true
+      allowEmptyValue: false
+      schema:
+        type: string
+        format: date-time
+    toDateTime:
+      name: toDateTime
+      in: query
+      description: End date-time range for measurements
+      required: true
+      allowEmptyValue: false
+      schema:
+        type: string
+        format: date-time
+  schemas:
+    measurement:
+      required:
+        - timestamp
+      type: object
+      minProperties: 2
+      additionalProperties:
+        type: number
+        minimum: 0
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        temperature:
+          type: number
+          minimum: 0
+        dewPoint:
+          type: number
+          minimum: 0
+        precipitation:
+          type: number
+          minimum: 0
+    statistic:
+      required:
+        - metric
+        - stat
+        - value
+      properties:
+        metric:
+          type: string
+        stat:
+          type: string
+        value:
+          type: number
