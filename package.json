@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "big.js": "^5.2.2",
-    "express": "^4.15.3",
+    "express": "^4.17.3",
     "express-openapi-validator": "^1.6.1",
     "fromentries": "^1.2.0",
     "swagger-ui-express": "^4.0.7",
